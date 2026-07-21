@@ -16,6 +16,9 @@ git이라는 프로그램을 사용
 3. git remote add origin 저장소 주소(github의 주소) : 저장소 연결 (최초 1회만)
 
 github 저장소에 올리기
-1. git add 파일들 (모든 파일은 '.')
-2. git commit -m "기록 메세지"
+1. git add 파일들 (모든 파일은 '.')  ->  git stasus : 업로드 상태 확인
+2. git commit -m "기록 메세지"  -> git log : 메세지 등록상태 확인
 3. git push origin master(main)
+
+또 올리는(수정하는) 방법 : 'github 저장소에 올리기' 같은 방식으로 반복
+
