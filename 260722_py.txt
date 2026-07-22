@@ -1,0 +1,17 @@
+import math
+def solve(a, b, c):
+    if a == 0:
+        return "Not a quadratic equation"
+    
+    d = b**2 - 4*a*c
+
+    if d < 0:
+        return "No real roots"
+
+    elif d == 0:
+        return -b / (2*a)
+
+    else:
+        root1 = (-b + math.sqrt(d)) / (2*a)
+        root2 = (-b - math.sqrt(d)) / (2*a)
+        return root1, root2
