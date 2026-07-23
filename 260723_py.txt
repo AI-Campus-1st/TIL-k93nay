@@ -1,0 +1,51 @@
+[과제 1번 문항 답]
+
+word1 = 'apple'
+word2 = 'banana'
+vowel = 'aeiou'
+
+count1 = []
+for i in word1:
+    if i in vowel:
+        count1.append(i)
+print(len(count1))
+
+count2 = []
+for i in word2:
+    if i in vowel:
+        count2.append(i)
+print(len(count2))
+
+
+
+
+
+
+[과제 2번 문항 답]
+n = 5
+m = 9
+
+width = ('*' * n) + '\n'
+print(width * m)
+
+
+
+
+
+
+
+[과제 3번 문항 답]
+import random
+nums = list(range(1, 11))
+new = random.sample(nums, 3)
+print(new)
+
+sorted_nums1 = new.sort()
+sorted_nums2 = sorted(new)
+print(sorted_nums1) # 원본 list의 순서만 정렬. 아무것도 반환하지 않음
+print(sorted_nums2) # 원본 list는 건드리지 않고, 정렬된 새로운 list를 만들어 반환
+
+ex.
+[4, 1, 6]
+None
+[1, 4, 6]
