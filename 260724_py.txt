@@ -40,9 +40,9 @@ bloods = [
 ]
 
 blood_types = {}
-for type in bloods:
-    if type in blood_types:
-        blood_types[type] += 1
+for types in bloods:
+    if types in blood_types:
+        blood_types[types] += 1
     else:
-        blood_types[type] = 1
+        blood_types[types] = 1
 print(blood_types)
