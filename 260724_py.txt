@@ -1,0 +1,48 @@
+[과제 1번 문항 답]
+
+a = [1, 2, 3, 4, 5]
+b = a   # 둘의 객체메모리 주소값이 동일해짐
+
+print(id(a) == id(b))
+
+a[2] = 5   # list 내 값 변경. 동일한 주소값을 쓰는 a, b 모두 변경
+
+print(a)
+print(b)
+
+--->
+True
+[1, 2, 5, 4, 5]
+[1, 2, 5, 4, 5]
+
+
+
+
+[과제 2번 문항 답]
+
+scores = {
+    'python': 80,
+    'algorithm': 90,
+    'django': 89,
+    'web': 83,
+}
+
+print(sum(scores.values()) / len(scores))
+
+
+
+
+[과제 3번 문항 답]
+
+bloods = [
+    'A', 'B', 'A', 'O', 'AB', 'AB',
+    'O', 'A', 'B', 'O', 'B', 'AB',
+]
+
+blood_types = {}
+for type in bloods:
+    if type in blood_types:
+        blood_types[type] += 1
+    else:
+        blood_types[type] = 1
+print(blood_types)
