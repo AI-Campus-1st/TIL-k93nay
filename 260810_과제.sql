@@ -191,7 +191,8 @@ SELECT
 FROM tb_category AS c
     JOIN tb_product AS p ON c.category_id = p.category_id
     LEFT JOIN tb_order_item AS oi ON p.product_id = oi.product_id
-    LEFT JOIN tb_order AS o ON oi.order_id = o.order_id AND o.status <> 'CANCELED'
+    LEFT JOIN tb_order AS o ON oi.order_id = o.order_id 
+WHERE o.status <> 'CANCELED'
 GROUP BY c.category_name, p.product_name, p.stock_qty
 ORDER BY 소진율 DESC;
 
@@ -250,7 +251,8 @@ SELECT
     SUM(oi.qty * oi.unit_price) AS 총매출,
     SUM(oi.qty * oi.unit_price) / COUNT(c.customer_id) AS 1인당평균구매액
 FROM tb_customer AS c
-    LEFT JOIN tb_order AS o ON c.customer_id = o.customer_id AND o.status != 'CANCELED'
+    LEFT JOIN tb_order AS o ON c.customer_id = o.customer_id
     LEFT JOIN tb_order_item AS oi ON o.order_id = oi.order_id
+WHERE o.status <> 'CANCELED'
 GROUP BY 등급
 ORDER BY 1인당평균구매액 DESC;
