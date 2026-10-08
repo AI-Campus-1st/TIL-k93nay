@@ -1,0 +1,174 @@
+================================================================================
+ 1. GPT-1 : Improving Language Understanding by Generative Pre-Training
+================================================================================
+
+[1] 핵심 인사이트 (Core Insights)
+
+- 기존 NLP 접근법의 한계: 지도 학습(Supervised Learning) 방식은 라벨링된 고품질 데이터의 
+  부족 현상에 직면하며, 기존의 사전 학습 단어 임베딩(Word2Vec, GloVe 등)은 단어 수준의 
+  의미만 전달하여 문맥이나 고차원적 의미 구조를 반영하기 어려웠습니다.
+
+- 생성적 사전 학습(Generative Pre-Training)의 제안: 범용적 언어 표현(Universal Representation)을 
+  학습하기 위해, 방대한 레이블 없는 텍스트에서 언어 모델링(Generative Language Modeling)으로 
+  모델을 사전 학습한 후, 각 하위 타깃 과제에 맞게 최소한의 구조 변경만으로 미세조정(Fine-Tuning)하는 
+  2단계(Two-Stage) 전이 학습 프레임워크를 제시했습니다.
+
+- 장기 의존성(Long-range Dependencies) 해결: 기존 LSTM/RNN 기반 모델의 한계를 극복하기 위해 
+  Self-Attention 구조를 갖춘 Transformer Decoder를 채택함으로써, 먼 거리의 단어 간 
+  관계도 안정적으로 포착합니다.
+
+[2] 필수 및 주요 키워드 (Key Keywords)
+
+- Autoregressive Model (단방향/자기회귀 모델): 이전 단어들의 문맥(Context)만을 기반으로 
+  다음 단어(Next Token)의 확률을 순차적으로 예측하는 언어 모델링 방식입니다.
+
+- Transfer Learning (전이 학습): 레이블이 없는 대규모 텍스트로부터 일반적인 언어 구조와 
+  지식을 학습(Pre-training)한 뒤, 이를 특정 정답이 있는 downstream task에 적응(Fine-tuning)시키는 기법입니다.
+
+- Language Generation (언어 생성): 자율적인 텍스트 생성을 가능하게 하는 사전 학습 목표로, 
+  BooksCorpus와 같은 연속된 장문 텍스트 데이터를 학습하여 풍부한 세계 지식을 획득합니다.
+
+- Transformer Decoder: Masked Multi-Head Self-Attention 기법을 활용하여 미래의 토큰을 
+  참조하지 못하도록 제약된 Transformer 인코더/디코더 변형 구조입니다.
+
+- Task-specific Input Transformations (과제별 입력 변환): 모델의 자체 구조 수정 없이, 
+  입력 데이터의 형식만 맞춤형(시작 <s|, 구분 $, 추출 <e| 토큰 사용)으로 변경하여 다양한 과제에 적용합니다.
+
+[3] 전체 프로세스 구성 및 모델 프로세스별 핵심내용
+
+GPT-1의 학습 및 전이 프로세스는 크게 두 단계와 입력 변환 기법으로 구분됩니다.
+
+(1) 1단계: 비지도 사전 학습 (Unsupervised Pre-training)
+
+  - 학습 목표: 무작위 텍스트 토큰 집합 U = {u_1, ..., u_n}에 대해 다음 자기회귀(Autoregressive) 
+    우도(Likelihood) L1(U)을 최대화합니다.
+    L1(U) = sum_i log P(u_i | u_{i-k}, ..., u_{i-1}; Theta)  (k: 컨텍스트 윈도우 크기)
+
+  - 모델 구조: 12층 Multi-layer Transformer Decoder 구조를 사용합니다.
+    h_0 = U * W_e + W_p
+    h_l = transformer_block(h_{l-1})  (l = 1 ~ 12)
+    P(u) = softmax(h_n * W_e^T)
+
+  - 데이터셋: BooksCorpus (7,000개 이상의 미출판 서적, 8억 단어 규모). 문장 단위로 섞이지 않고 
+    긴 연속적 텍스트가 유지되어 장기 의존성 학습에 최적화되어 있습니다.
+
+(2) 2단계: 지도 미세조정 (Supervised Fine-tuning)
+
+  - 학습 목표: 라벨링된 데이터셋 C(입력 토큰 sequence x_1,...,x_m 및 라벨 y)에 대해 
+    최종 Transformer 블록의 출력 h_m^l에 선형 레이어 W_y를 추가하여 예측 라벨 확률을 최대화합니다.
+    P(y | x_1, ..., x_m) = softmax(h_m^l * W_y)
+
+  - 보조 언어 모델링 손실(Auxiliary LM Objective): 미세조정 시 Supervised Loss L2(C)에 
+    보조 언어 모델 손실 L1(C)을 함께 최적화하는 L3(C) = L2(C) + lambda * L1(C) 방식을 도입하여 
+    일반화 성능 향상 및 수렴 속도 촉진을 달성했습니다. (lambda = 0.5)
+
+(3) 과제별 입력 변환 (Task-specific Input Transformations)
+
+  - Classification (분류): [시작 <s| -> 텍스트 -> 추출 <e|] 구조로 전달하여 선형 분류기로 예측.
+
+  - Textual Entailment (함의 관계): 전제(Premise)와 가설(Hypothesis) 사이에 구분자($)를 삽입.
+
+  - Similarity (유사도): 문장 순서에 따른 편향을 없애기 위해 (Text1, Text2) 및 (Text2, Text1) 두 순서를 
+    모두 모델에 통과시킨 뒤 두 표현을 요소별(Element-wise)로 합산하여 선형 레이어에 입력.
+
+  - Multiple Choice (다중 선택/QA): 문맥(Context) 및 질문(Question)에 각 보기(Answer k)를 
+    구분자($)와 함께 연결하여 독립적으로 계산한 후 Softmax를 통해 정답 확률 분포 생성.
+
+[4] 주요 성능 및 영향
+
+- GLUE 벤치마크, RACE(독해), Story Cloze(상식 추론), NLI(자연어 추론) 등 12개 중 9개 과제에서 SOTA(state-of-the-art) 달성.
+
+- Zero-shot 성능 분석을 통해 사전 학습 단계에서 모델이 문법성 판단, 감성 분석, 질의응답 등의 능력을 
+  지속적으로 획득함을 증명했습니다.
+
+
+================================================================================
+ 2. BERT : Pre-training of Deep Bidirectional Transformers for Language Understanding
+================================================================================
+
+[1] 핵심 인사이트 (Core Insights)
+
+- 기존 단방향 모델(GPT-1 등)의 한계 극복: GPT-1과 같은 기존 fine-tuning 모델은 단방향(Left-to-Right) 
+  Self-Attention 구조를 사용하여 각 토큰이 이전 토큰들만 참조할 수 있었습니다. 이는 질문-답변(QA)이나 
+  토큰 수준 태깅(NER)처럼 양방향 문맥 포착이 결정적인 과제에서 심각한 성능 제약을 발생시킵니다.
+
+- 깊은 양방향 성(Deep Bidirectionality)의 실현: Cloze 과제에서 착안한 Masked Language Model(MLM) 
+  사전 학습 목표를 제안하여, 모든 레이어에서 좌우 문맥을 동시에 결합하는 깊은 양방향 Transformer 
+  인코더 표현을 학습시킵니다.
+
+- 통합된 구조(Unified Architecture): pre-training과 fine-tuning 간의 구조적 차이를 최소화하여, 
+  단 하나의 추가 출력 레이어만 붙이면 문장 단위 및 토큰 단위의 11개 이상 NLP 과제에 즉시 적용 가능합니다.
+
+[2] 필수 및 주요 키워드 (Key Keywords)
+
+- Bidirectional Transformer (양방향 트랜스포머): 모든 레이어에서 좌우 양방향 컨텍스트를 동시에 
+  참조하여 언어 표현을 학습하는 Transformer Encoder 기반 구조입니다.
+
+- Input Representation (입력 표현): 단일 문장 및 문장 쌍을 명확하게 표현하기 위해 
+  Token Embeddings, Segment Embeddings, Position Embeddings의 3가지 임베딩을 합산(Sum)하여 구성합니다.
+
+- Masked Language Modeling (MLM, 마스크 언어 모델): 입력 토큰의 15%를 무작위로 선택하여 
+  [MASK] 토큰 등으로 대체한 후, 주변 양방향 문맥만을 통해 원래 단어를 예측하는 사전 학습 과제입니다.
+
+- Next Sentence Prediction (NSP, 다음 문장 예측): 두 문장 A와 B의 관계를 학습하기 위한 
+  이진 분류 과제로, B가 A의 실제 다음 문장인지(IsNext) 무작위 문장인지(NotNext)를 예측합니다.
+
+- Pre-training & Fine-Tuning (사전 학습 및 미세조정): 
+  - Pre-training: 라벨이 없는 대규모 텍스트(BooksCorpus + Wikipedia)에서 MLM과 NSP를 동시에 학습.
+  - Fine-Tuning: 사전 학습된 파라미터로 초기화한 후 각 하위 과제의 라벨링 데이터로 전체 파라미터를 엔드투엔드 업데이트.
+
+[3] 전체 프로세스 구성 및 모델 프로세스별 핵심내용
+
+(1) 모델 아키텍처 및 크기
+  - BERT-BASE: L=12 (Transformer block), H=768 (Hidden dimension), A=12 (Self-attention heads), 파라미터 수 110M (GPT-1과 동일 파라미터 규모 비교용)
+  - BERT-LARGE: L=24, H=1024, A=16, 파라미터 수 340M
+
+(2) Input Representation (입력 표현 상세)
+  - WordPiece 임베딩(30,000 단어장)을 사용합니다.
+  - 모든 시퀀스의 첫 번째 토큰은 항상 특별 분류 토큰인 [CLS]입니다. 최종 [CLS]의 히든 스테이트 C는 분류 과제의 대표 표현으로 사용됩니다.
+  - 문장 쌍 결합 시 특별 구분 토큰인 [SEP]를 삽입하고, 문장 A와 문장 B를 구분하는 세그먼트 임베딩(Segment Embedding)을 더합니다.
+  - 최종 입력 표현 = Token Embedding + Segment Embedding + Position Embedding
+
+(3) Pre-training Objectives (사전 학습 과제 상세)
+  - Task #1: Masked LM (MLM)
+    * 무작위로 15%의 WordPiece 토큰을 선정.
+    * pre-training과 fine-tuning 간의 불일치([MASK] 토큰이 fine-tuning에는 존재하지 않음)를 완화하기 위한 비율 적용:
+      1) 80%: 실제 [MASK] 토큰으로 교체 (예: my dog is hairy -> my dog is [MASK])
+      2) 10%: 무작위 다른 단어로 교체 (예: my dog is hairy -> my dog is apple)
+      3) 10%: 원래 단어 그대로 유지 (예: my dog is hairy -> my dog is hairy)
+  - Task #2: Next Sentence Prediction (NSP)
+    * 50%는 실제 연속된 다음 문장(IsNext), 50%는 코퍼스 내 무작위 문장(NotNext).
+    * [CLS] 토큰의 최종 벡터 C를 사용하여 이진 분류 수행. QA 및 NLI 성능 향상에 핵심적 역할.
+  - 사전 학습 데이터: BooksCorpus (8억 단어) + English Wikipedia (25억 단어, 목차/표 제외한 텍스트 본문).
+
+(4) Fine-tuning Procedure (미세조정 절차)
+  - 하위 과제별로 알맞은 입력 형태([CLS] 및 [SEP] 활용)와 최소한의 출력 레이어만 추가하여 전체 파라미터 미세조정.
+  - 문장 쌍 분류(MNLI, QQP 등): [CLS] 표현 C에 분류 레이어 적용.
+  - 질의응답(SQuAD): 질문(문장 A)과 본문(문장 B)을 결합하여, 답안 텍스트 스팬의 Start/End 위치를 예측하는 S 및 E 벡터 도입.
+  - 토큰 분류(NER): 각 토큰 위치의 최종 출력 벡터 T_i에 토큰 분류기 연결.
+  - 빠른 학습 시간: Cloud TPU 1대로 30분~수 시간 이내 미세조정 완료.
+
+[4] 주요 성능 및 소거 연구(Ablation Studies)
+
+- GLUE 80.5%, SQuAD v1.1 F1 93.2, SQuAD v2.0 F1 83.1, SWAG 86.3% 등 11개 NLP 과제 전체에서 최첨단(SOTA) 달성.
+
+- 소거 연구(Ablation):
+  1) 양방향 MLM vs 단방향 LTR: 단방향 LTR 모델은 모든 과제(특히 QA, MRPC)에서 크게 성능 저하.
+  2) NSP 과제 유무: NSP 제거 시 QNLI, MNLI, SQuAD 등 문장 관계 이해 과제에서 성능 하락.
+  3) 모델 스케일ing: 데이터가 적은 과제(MRPC 3.6k 개)라 할지라도 모델 크기(BERT-LARGE)를 늘릴수록 명확한 성능 향상 관찰.
+  4) Feature-based 접근성: BERT 파라미터를 고정하고 상위 레이어의 획득된 임베딩(최상위 4개 레이어 Concatenation 등)만 활용해도 Fine-tuning 대비 0.3 F1 차이 이내로 매우 우수한 performance(CoNLL-2003 NER 96.1 F1) 제공.
+
+
+================================================================================
+ 3. GPT-1 vs BERT 구조적 및 개념적 비교 요약
+================================================================================
+
+[비교 항목]             |                      [GPT-1]                          |                  [BERT]
+----------------------------------------------------------------------------------------------------------------------------------------
+1. 기본 아키텍처     |     Transformer Decoder (Unidirectional)   |    Transformer Encoder (Bidirectional)
+2. 사전 학습 방식    |      Autoregressive Language Modeling    |     Masked LM (MLM) + Next Sentence Prediction (NSP)
+3. 문맥 참조 범위    |      단방향 (좌 -> 우, 순차적)                   |   깊은 양방향 (좌 <-> 우, 전 레이어 동시)
+4. 입력 구성           |   단일 시퀀스 + 특수 토큰(<s|, $, <e|)       |   Token + Segment + Position Embeddings ([CLS], [SEP])
+5. 주요 강점 분야    |      텍스트 생성(Generation), 독해            |   문맥 이해, 질의응답(QA), 문장 관계 분석, NER
+6. 전이 학습 메커니즘 |     Task-specific Input Traversal + LM Loss  |  Fine-tuning / Feature-based extraction 모두 유연
+================================================================================
