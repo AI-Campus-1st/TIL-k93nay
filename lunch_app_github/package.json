@@ -1,0 +1,14 @@
+{
+  "name": "lunch-app",
+  "version": "1.0.0",
+  "description": "점심 메뉴 추천 웹 서비스",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "db:reset": "node db.js --reset"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "license": "MIT"
+}

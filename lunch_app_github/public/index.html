@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>오늘 뭐 먹지?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍱</text></svg>" />
+</head>
+<body>
+  <!-- 글로벌 내비게이션 -->
+  <nav class="global-nav">
+    <div class="nav-inner">
+      <a href="/" class="brand">
+        <span class="brand-mark" aria-hidden="true">🍱</span>
+        <span class="brand-name">오늘 뭐 먹지?</span>
+      </a>
+      <div class="nav-links">
+        <a href="#filters">조건 설정</a>
+        <a href="#allergy">알러지</a>
+        <a href="#history">기록</a>
+      </div>
+      <a href="#create-vote" class="btn btn-black">투표 만들기</a>
+    </div>
+  </nav>
+
+  <!-- 팀 투표 화면 (공유 링크로 접속 시) -->
+  <section id="voteView" class="vote-zone" hidden>
+    <div class="container">
+      <div class="card vote-card">
+        <div class="card-head">
+          <h1 id="voteTitle">🗳️ 팀 투표</h1>
+          <span id="voteStatus" class="vote-status"></span>
+        </div>
+        <div class="share-row">
+          <input id="shareLink" type="text" readonly aria-label="투표 링크" />
+          <button id="copyLinkBtn" class="btn btn-outline">링크 복사</button>
+        </div>
+        <div id="voteWinner" class="vote-winner" hidden></div>
+        <div class="field name-field">
+          <label class="label" for="voterName">내 이름</label>
+          <input id="voterName" type="text" maxlength="20" placeholder="이름을 입력하고 메뉴를 눌러 투표하세요" />
+        </div>
+        <ul id="voteCandidates" class="vote-candidates"></ul>
+        <p id="voteMessage" class="message"></p>
+        <div class="vote-actions">
+          <a href="/" class="text-link">← 메인으로</a>
+          <button id="closeVoteBtn" class="btn btn-primary" hidden>투표 마감하기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 추천 피처 밴드 (House Green) -->
+  <header class="feature-band">
+    <div class="container band-inner">
+      <div class="band-copy">
+        <p class="eyebrow">TODAY'S LUNCH PICK</p>
+        <h2 class="band-title">고민은 그만,<br />버튼 한 번으로 점심 정하기</h2>
+        <p class="band-sub">날씨와 기분, 알러지까지 고려해서 오늘 점심을 골라드려요.</p>
+
+        <div id="weatherCard" class="weather-card" hidden>
+          <span id="weatherEmoji" class="weather-emoji">🌤️</span>
+          <div class="weather-text">
+            <div id="weatherSummary" class="weather-summary">날씨 불러오는 중…</div>
+            <div id="weatherMessage" class="weather-message"></div>
+          </div>
+          <label class="switch">
+            <input id="weatherToggle" type="checkbox" checked />
+            <span>날씨 맞춤</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="result-card" aria-live="polite">
+        <div id="resultEmoji" class="result-emoji">🤔</div>
+        <div id="resultName" class="result-name">메뉴를 추천받아 보세요</div>
+        <div id="resultMeta" class="result-meta"></div>
+        <div id="weatherBadge" class="weather-badge" hidden></div>
+        <div class="result-actions">
+          <button id="recommendBtn" class="btn btn-inverted btn-lg">메뉴 추천받기</button>
+          <button id="decideBtn" class="btn btn-outline-dark btn-lg" hidden>이걸로 결정!</button>
+        </div>
+        <a id="mapLink" class="map-link" target="_blank" rel="noopener" hidden>주변 식당 찾기 →</a>
+        <p id="candidateInfo" class="candidate-info"></p>
+      </div>
+    </div>
+  </header>
+
+  <!-- 본문 (크림 캔버스) -->
+  <main class="container content-grid">
+    <div class="col">
+      <section id="filters" class="card">
+        <h2>조건 설정</h2>
+
+        <div class="field">
+          <span class="label">음식 종류 <small>선택 안 하면 전체</small></span>
+          <div id="categoryChips" class="chips"></div>
+        </div>
+
+        <div class="field">
+          <span class="label">오늘의 기분</span>
+          <div id="tagChips" class="chips"></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="priceRange">최대 가격 <strong id="priceLabel" class="price-label">상관없음</strong></label>
+          <input id="priceRange" type="range" min="5000" max="20000" step="1000" value="20000" />
+        </div>
+
+        <div class="field">
+          <span class="label">매운 음식</span>
+          <div class="segmented" role="radiogroup">
+            <label><input type="radio" name="spicy" value="any" checked /><span>상관없음</span></label>
+            <label><input type="radio" name="spicy" value="yes" /><span>🌶️ 매운 거</span></label>
+            <label><input type="radio" name="spicy" value="no" /><span>안 매운 거</span></label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="checkbox">
+            <input id="excludeRecent" type="checkbox" checked />
+            <span>최근 3일 동안 먹은 메뉴 제외</span>
+          </label>
+        </div>
+      </section>
+
+      <section id="allergy" class="card">
+        <h2>알러지 · 못 먹는 음식</h2>
+        <div class="field">
+          <span class="label">알러지 / 안 먹는 재료</span>
+          <div id="allergenChips" class="chips"></div>
+          <button id="vegetarianBtn" type="button" class="text-link preset">🥬 육류 전부 제외</button>
+        </div>
+        <div class="field">
+          <label class="label" for="avoidInput">못 먹는 메뉴 <small>쉼표로 구분 · 메뉴 이름에 포함되면 제외</small></label>
+          <input id="avoidInput" type="text" placeholder="예: 마라, 회, 순대" />
+        </div>
+        <p class="note">설정은 이 브라우저에 저장되고 추천·투표에 모두 적용돼요. 실제 재료는 식당마다 다를 수 있으니 꼭 확인하세요.</p>
+      </section>
+    </div>
+
+    <div class="col">
+      <section id="create-vote" class="card">
+        <h2>팀 투표 만들기</h2>
+        <p class="note">지금 설정한 조건(날씨·알러지 포함)에 맞는 메뉴로 후보를 만들어요. 링크를 공유하면 팀원들이 함께 투표할 수 있어요.</p>
+        <div class="field">
+          <label class="label" for="voteTitleInput">투표 제목</label>
+          <input id="voteTitleInput" type="text" maxlength="40" placeholder="오늘 점심 뭐 먹을까요?" />
+        </div>
+        <div class="field inline-fields">
+          <label class="label inline" for="voteCount">후보 수
+            <select id="voteCount">
+              <option value="3">3개</option>
+              <option value="4" selected>4개</option>
+              <option value="5">5개</option>
+              <option value="6">6개</option>
+            </select>
+          </label>
+          <label class="checkbox">
+            <input id="includeCurrent" type="checkbox" checked />
+            <span>지금 추천된 메뉴 포함</span>
+          </label>
+        </div>
+        <button id="createVoteBtn" class="btn btn-primary btn-lg btn-full">투표 만들기</button>
+        <p id="createVoteMessage" class="message"></p>
+      </section>
+
+      <section id="history" class="card">
+        <div class="card-head">
+          <h2>최근 먹은 메뉴</h2>
+          <button id="clearHistory" class="text-link">기록 지우기</button>
+        </div>
+        <ul id="historyList" class="history"></ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-brand">🍱 오늘 뭐 먹지?</div>
+      <p>매일 점심이 즐거워지길 · 날씨 정보 제공 Open-Meteo</p>
+    </div>
+  </footer>
+
+  <!-- 플로팅 추천 버튼 -->
+  <button id="frapBtn" class="frap" aria-label="메뉴 추천받기" title="메뉴 추천받기">🎲</button>
+
+  <script src="app.js"></script>
+</body>
+</html>
