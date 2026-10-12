@@ -1,0 +1,12 @@
+# Render 배포 설정 (Blueprint)
+services:
+  - type: web
+    name: lunch-app
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/menus
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
